@@ -30,7 +30,7 @@ tasks {
     }
 
     shadowJar {
-        archiveFileName.set("PersistentBlockData.jar")
+        //archiveFileName.set("PersistentBlockData.jar")
 
         relocate("de.tr7zw.changeme.nbtapi", "gg.kpjm.persistentBlockData.nbt.api")
         relocate("de.tr7zw.annotations", "gg.kpjm.persistentBlockData.nbt.annotations")
