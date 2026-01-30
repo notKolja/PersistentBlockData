@@ -1,4 +1,6 @@
 name: PersistentBlockData
-version: '0.1.8'
+version: '0.1.11'
 main: gg.kpjm.persistentBlockData.PersistentBlockData
 api-version: '1.21'
+authors:
+  - Kolja Menzel
