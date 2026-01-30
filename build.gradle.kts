@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.kpjm"
-version = "0.1.0"
+version = "0.1.4"
 
 repositories {
     mavenCentral()
@@ -36,6 +36,11 @@ tasks {
 
         archiveClassifier.set("")
     }
+
+    // Disable the default jar task since we only want shadowJar
+    named<Jar>("jar") {
+        enabled = false
+    }
 }
 
 val targetJavaVersion = 21
@@ -64,17 +69,8 @@ publishing {
             artifactId = "persistentblockdata"
             version = project.version.toString()
 
-            // Publish the shadowed JAR (mit allen Dependencies)
-            artifact(tasks.shadowJar) {
-                classifier = ""
-            }
+            // Only publish the shadowed JAR
+            artifact(tasks.shadowJar)
         }
-    }
-}
-
-// Fix task dependencies after evaluation
-afterEvaluate {
-    tasks.named("publishMavenPublicationToMavenLocal") {
-        dependsOn(tasks.shadowJar)
     }
 }
