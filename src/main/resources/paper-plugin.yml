@@ -1,4 +1,4 @@
 name: PersistentBlockData
-version: '0.1.0'
+version: '${project.version}'
 main: gg.kpjm.persistentBlockData.PersistentBlockData
 api-version: '1.21'
