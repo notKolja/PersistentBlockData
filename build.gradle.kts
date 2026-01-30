@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.kpjm"
-version = "0.1.12"
+version = "0.1.13"
 
 repositories {
     mavenCentral()
@@ -30,14 +30,15 @@ tasks {
         minecraftVersion("1.21")
     }
 
-    // NORMAL JAR — required for Maven
+    // NORMAL JAR (Maven default)
     named<Jar>("jar") {
         enabled = true
     }
 
-    // SHADOW JAR — optional, gets classifier
+    // SHADOW JAR (classifier = all)
     shadowJar {
         archiveClassifier.set("all")
+        archiveFileName.set("PersistentBlockData.jar")
 
         relocate(
             "de.tr7zw.changeme.nbtapi",
@@ -66,10 +67,12 @@ tasks {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            from(components["java"]) // publishes NORMAL jar
+            // publish ONLY the normal jar from java component
+            from(components["java"])
 
-            artifact(tasks.shadowJar) {
-                classifier = "all"    // publishes shadow jar
+            // publish shadow jar ONCE, explicitly
+            artifact(tasks.shadowJar.get()) {
+                classifier = "all"
             }
         }
     }
