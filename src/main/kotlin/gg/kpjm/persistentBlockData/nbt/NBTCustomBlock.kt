@@ -64,6 +64,10 @@ class NBTCustomBlock(private val block: Block) : NBTContainer(), NBTCustom {
         }.toString()
     }
 
+    fun copy(): NBTCustomBlock {
+        return NBTCustomBlock(block)
+    }
+
     /**
      * Deletes the custom "custom" NBT compound from this block's data.
      */

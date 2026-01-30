@@ -1,6 +1,7 @@
 package gg.kpjm.persistentBlockData.listener
 
 import gg.kpjm.persistentBlockData.nbt.NBTCustomBlock
+import org.bukkit.Bukkit
 import org.bukkit.block.Block
 import org.bukkit.block.PistonMoveReaction
 import org.bukkit.event.EventHandler
@@ -14,6 +15,10 @@ import java.util.function.Consumer
 
 
 class PistonMovementListener: Listener {
+
+    init {
+        Bukkit.getLogger().info { "PistonMovementListener was registered!" }
+    }
 
     private fun getData(block: Block): NBTCustomBlock {
         return NBTCustomBlock(block)
@@ -67,21 +72,32 @@ class PistonMovementListener: Listener {
     }
 
     private fun onPiston(blocks: MutableList<Block?>, bukkitEvent: BlockPistonEvent) {
-        val map: MutableMap<Block, NBTCustomBlock?> = LinkedHashMap()
+        val dataToMove: MutableMap<Block, NBTCustomBlock> = LinkedHashMap()
         val direction = bukkitEvent.direction
-        blocks.stream().forEach { block ->
-            val nbt = getData(block!!)
+
+        blocks.forEach { block ->
+            if (block == null) return@forEach
+
             val reaction = block.pistonMoveReaction
             if (reaction == PistonMoveReaction.BREAK) {
-                removeData(block)
                 return@forEach
             }
-            val destinationBlock = block.getRelative(direction)
-            map[destinationBlock] = nbt
+
+            val nbt = getData(block)
+            if (NBTCustomBlock.hasCustomNBT(block)) {
+                val destinationBlock = block.getRelative(direction)
+                dataToMove[destinationBlock] = nbt.copy()
+            }
         }
-        reverse(map).forEach{ (block, nbt) ->
-            nbt?.copyTo(block)
-            nbt?.clearNBT()
+
+        blocks.forEach { block ->
+            if (block != null) {
+                removeData(block)
+            }
+        }
+
+        reverse(dataToMove).forEach { (destinationBlock, nbt) ->
+            nbt.copyTo(destinationBlock)
         }
     }
 
