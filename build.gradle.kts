@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.2.21"
     id("com.gradleup.shadow") version "8.3.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    `maven-publish`
 }
 
 group = "gg.kpjm"
@@ -12,19 +13,28 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc-repo"
     }
+    maven("https://repo.codemc.io/repository/maven-public/") {
+        name = "codemc-repo"
+    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("de.tr7zw:item-nbt-api:2.15.5")
 }
 
 tasks {
     runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.21")
+    }
+
+    shadowJar {
+        // Relocate NBT-API to avoid conflicts with other plugins
+        relocate("de.tr7zw.changeme.nbtapi", "gg.kpjm.persistentBlockData.nbt.api")
+        relocate("de.tr7zw.annotations", "gg.kpjm.persistentBlockData.nbt.annotations")
+
+        archiveClassifier.set("")
     }
 }
 
@@ -43,5 +53,19 @@ tasks.processResources {
     filteringCharset = "UTF-8"
     filesMatching("paper-plugin.yml") {
         expand(props)
+    }
+}
+
+// JitPack Publishing
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "gg.kpjm"
+            artifactId = "persistentblockdata"
+            version = project.version.toString()
+
+            // Publish the shadowed JAR (mit allen Dependencies)
+            artifact(tasks.shadowJar)
+        }
     }
 }
