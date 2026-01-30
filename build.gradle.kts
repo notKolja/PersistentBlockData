@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.kpjm"
-version = "0.1.13"
+version = "0.1.14"
 
 repositories {
     mavenCentral()
@@ -20,9 +20,8 @@ dependencies {
     implementation("de.tr7zw:item-nbt-api:2.15.5")
 }
 
-val targetJavaVersion = 21
 kotlin {
-    jvmToolchain(targetJavaVersion)
+    jvmToolchain(21)
 }
 
 tasks {
@@ -30,15 +29,8 @@ tasks {
         minecraftVersion("1.21")
     }
 
-    // NORMAL JAR (Maven default)
-    named<Jar>("jar") {
-        enabled = true
-    }
-
-    // SHADOW JAR (classifier = all)
     shadowJar {
         archiveClassifier.set("all")
-        archiveFileName.set("PersistentBlockData.jar")
 
         relocate(
             "de.tr7zw.changeme.nbtapi",
@@ -67,13 +59,7 @@ tasks {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            // publish ONLY the normal jar from java component
-            from(components["java"])
-
-            // publish shadow jar ONCE, explicitly
-            artifact(tasks.shadowJar.get()) {
-                classifier = "all"
-            }
+            from(components["java"]) // ← ENDE. Shadow ist hier schon drin.
         }
     }
 }
