@@ -1,6 +1,8 @@
 package gg.kpjm.persistentBlockData.listener
 
+import gg.kpjm.persistentBlockData.PersistentBlockData
 import gg.kpjm.persistentBlockData.nbt.NBTCustomBlock
+import org.bukkit.Bukkit
 import org.bukkit.block.Block
 import org.bukkit.block.PistonMoveReaction
 import org.bukkit.event.EventHandler
@@ -9,10 +11,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.*
 import org.bukkit.event.entity.EntityChangeBlockEvent
 import org.bukkit.event.entity.EntityExplodeEvent
+import org.bukkit.plugin.Plugin
 import java.util.*
 
 
-class PistonMovementListener: Listener {
+class PistonMovementListener(): Listener {
 
     private fun getData(block: Block): NBTCustomBlock {
         return NBTCustomBlock(block)
@@ -55,12 +58,12 @@ class PistonMovementListener: Listener {
         removeData(event.block)
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onPiston(event: BlockPistonExtendEvent) {
         onPiston(event.blocks, event)
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onPiston(event: BlockPistonRetractEvent) {
         onPiston(event.blocks, event)
     }
@@ -81,7 +84,6 @@ class PistonMovementListener: Listener {
             if (NBTCustomBlock.hasCustomNBT(block)) {
                 val nbt = getData(block)
                 val destinationBlock = block.getRelative(direction)
-                // Kopiere die NBT-Daten, nicht die Referenz
                 dataToMove[destinationBlock] = nbt
             }
         }
@@ -93,10 +95,12 @@ class PistonMovementListener: Listener {
             }
         }
 
-        // Schritt 3: Neue Daten in umgekehrter Reihenfolge setzen
-        reverse(dataToMove).forEach { (destinationBlock, nbt) ->
-            nbt.copyTo(destinationBlock)
-        }
+        // Schritt 3: Neue Daten NACH der Piston-Bewegung setzen (1 tick später)
+        Bukkit.getScheduler().runTask(PersistentBlockData.instance, Runnable {
+            reverse(dataToMove).forEach { (destinationBlock, nbt) ->
+                nbt.copyTo(destinationBlock)
+            }
+        })
     }
 
 

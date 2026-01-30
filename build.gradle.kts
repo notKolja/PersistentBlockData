@@ -30,7 +30,8 @@ tasks {
     }
 
     shadowJar {
-        // Relocate NBT-API to avoid conflicts with other plugins
+        //archiveFileName.set("PersistentBlockData.jar")
+
         relocate("de.tr7zw.changeme.nbtapi", "gg.kpjm.persistentBlockData.nbt.api")
         relocate("de.tr7zw.annotations", "gg.kpjm.persistentBlockData.nbt.annotations")
 
