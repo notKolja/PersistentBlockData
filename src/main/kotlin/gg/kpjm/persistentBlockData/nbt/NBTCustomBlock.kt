@@ -71,6 +71,13 @@ class NBTCustomBlock(private val block: Block) : NBTContainer(), NBTCustom {
         removeKey("custom")
     }
 
+    fun copyTo(targetBlock: Block) {
+        val targetNBT = NBTCustomBlock(targetBlock)
+        targetNBT.clearNBT()
+        targetNBT.mergeCompound(this)
+        targetNBT.saveCompound()
+    }
+
     /**
      * Creates and returns a deep copy of this NBT compound.
      */

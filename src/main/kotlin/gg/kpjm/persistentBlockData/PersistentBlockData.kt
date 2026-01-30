@@ -1,5 +1,6 @@
 package gg.kpjm.persistentBlockData
 
+import gg.kpjm.persistentBlockData.listener.PistonMovementListener
 import org.bukkit.plugin.java.JavaPlugin
 
 class PersistentBlockData : JavaPlugin() {
@@ -7,6 +8,8 @@ class PersistentBlockData : JavaPlugin() {
     override fun onEnable() {
         instance = this
         logger.info("PersistentBlockData aktiviert!")
+
+        server.pluginManager.registerEvents(PistonMovementListener(), this)
     }
 
     override fun onDisable() {
