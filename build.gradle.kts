@@ -65,7 +65,16 @@ publishing {
             version = project.version.toString()
 
             // Publish the shadowed JAR (mit allen Dependencies)
-            artifact(tasks.shadowJar)
+            artifact(tasks.shadowJar) {
+                classifier = ""
+            }
         }
+    }
+}
+
+// Fix task dependencies after evaluation
+afterEvaluate {
+    tasks.named("publishMavenPublicationToMavenLocal") {
+        dependsOn(tasks.shadowJar)
     }
 }
