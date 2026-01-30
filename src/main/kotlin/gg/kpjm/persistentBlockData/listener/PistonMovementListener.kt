@@ -1,7 +1,6 @@
 package gg.kpjm.persistentBlockData.listener
 
 import gg.kpjm.persistentBlockData.nbt.NBTCustomBlock
-import org.bukkit.Bukkit
 import org.bukkit.block.Block
 import org.bukkit.block.PistonMoveReaction
 import org.bukkit.event.EventHandler
@@ -11,14 +10,9 @@ import org.bukkit.event.block.*
 import org.bukkit.event.entity.EntityChangeBlockEvent
 import org.bukkit.event.entity.EntityExplodeEvent
 import java.util.*
-import java.util.function.Consumer
 
 
 class PistonMovementListener: Listener {
-
-    init {
-        Bukkit.getLogger().info { "PistonMovementListener was registered!" }
-    }
 
     private fun getData(block: Block): NBTCustomBlock {
         return NBTCustomBlock(block)
@@ -75,6 +69,7 @@ class PistonMovementListener: Listener {
         val dataToMove: MutableMap<Block, NBTCustomBlock> = LinkedHashMap()
         val direction = bukkitEvent.direction
 
+        // Schritt 1: Alle NBT-Daten VORHER auslesen und speichern
         blocks.forEach { block ->
             if (block == null) return@forEach
 
@@ -83,19 +78,22 @@ class PistonMovementListener: Listener {
                 return@forEach
             }
 
-            val nbt = getData(block)
             if (NBTCustomBlock.hasCustomNBT(block)) {
+                val nbt = getData(block)
                 val destinationBlock = block.getRelative(direction)
-                dataToMove[destinationBlock] = nbt.copy()
+                // Kopiere die NBT-Daten, nicht die Referenz
+                dataToMove[destinationBlock] = nbt
             }
         }
 
+        // Schritt 2: Alle alten Daten löschen
         blocks.forEach { block ->
             if (block != null) {
                 removeData(block)
             }
         }
 
+        // Schritt 3: Neue Daten in umgekehrter Reihenfolge setzen
         reverse(dataToMove).forEach { (destinationBlock, nbt) ->
             nbt.copyTo(destinationBlock)
         }
@@ -104,9 +102,9 @@ class PistonMovementListener: Listener {
 
     private fun <K, V> reverse(map: MutableMap<K, V>): MutableMap<K, V> {
         val reversed = LinkedHashMap<K, V>()
-        val keys: MutableList<K> = ArrayList<K>(map.keys)
+        val keys: MutableList<K> = ArrayList(map.keys)
         keys.reverse()
-        keys.forEach(Consumer { key: K -> reversed[key] = map[key]!! })
+        keys.forEach { key -> reversed[key] = map[key]!! }
         return reversed
     }
 }

@@ -12,6 +12,7 @@ class PersistentBlockData : JavaPlugin() {
         server.pluginManager.registerEvents(PistonMovementListener(), instance)
     }
 
+
     override fun onDisable() {
         logger.info("PersistentBlockData deaktiviert!")
     }

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "gg.kpjm"
-version = "0.1.4"
+version = "0.1.8"
 
 repositories {
     mavenCentral()
@@ -30,11 +30,14 @@ tasks {
     }
 
     shadowJar {
-        // Relocate NBT-API to avoid conflicts with other plugins
+        archiveFileName.set("PersistentBlockData.jar")
+
         relocate("de.tr7zw.changeme.nbtapi", "gg.kpjm.persistentBlockData.nbt.api")
         relocate("de.tr7zw.annotations", "gg.kpjm.persistentBlockData.nbt.annotations")
+    }
 
-        archiveClassifier.set("")
+    named<Jar>("jar") {
+        enabled = false
     }
 
     // Disable the default jar task since we only want shadowJar
