@@ -6,12 +6,16 @@ plugins {
 }
 
 group = "gg.kpjm"
-version = "0.1.14"
+version = "0.1.16"
 
 repositories {
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.codemc.io/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/") {
+        name = "papermc-repo"
+    }
+    maven("https://repo.codemc.io/repository/maven-public/") {
+        name = "codemc-repo"
+    }
 }
 
 dependencies {
@@ -20,46 +24,53 @@ dependencies {
     implementation("de.tr7zw:item-nbt-api:2.15.5")
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 tasks {
     runServer {
         minecraftVersion("1.21")
     }
 
     shadowJar {
-        archiveClassifier.set("all")
+        // Relocate NBT-API to avoid conflicts with other plugins
+        relocate("de.tr7zw.changeme.nbtapi", "gg.kpjm.persistentBlockData.nbt.api")
+        relocate("de.tr7zw.annotations", "gg.kpjm.persistentBlockData.nbt.annotations")
 
-        relocate(
-            "de.tr7zw.changeme.nbtapi",
-            "gg.kpjm.persistentBlockData.nbt.api"
-        )
-        relocate(
-            "de.tr7zw.annotations",
-            "gg.kpjm.persistentBlockData.nbt.annotations"
-        )
+        archiveClassifier.set("")
     }
 
-    build {
-        dependsOn(shadowJar)
-    }
-
-    processResources {
-        val props = mapOf("version" to version)
-        inputs.properties(props)
-        filteringCharset = "UTF-8"
-        filesMatching("paper-plugin.yml") {
-            expand(props)
-        }
+    // Disable the default jar task since we only want shadowJar
+    named<Jar>("jar") {
+        enabled = false
     }
 }
 
+val targetJavaVersion = 21
+kotlin {
+    jvmToolchain(targetJavaVersion)
+}
+
+tasks.build {
+    dependsOn("shadowJar")
+}
+
+tasks.processResources {
+    val props = mapOf("version" to version)
+    inputs.properties(props)
+    filteringCharset = "UTF-8"
+    filesMatching("paper-plugin.yml") {
+        expand(props)
+    }
+}
+
+// JitPack Publishing
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            from(components["java"]) // ← ENDE. Shadow ist hier schon drin.
+            groupId = "gg.kpjm"
+            artifactId = "persistentblockdata"
+            version = project.version.toString()
+
+            // Only publish the shadowed JAR
+            artifact(tasks.shadowJar)
         }
     }
 }
