@@ -12,7 +12,7 @@
    - 3.1 [PersistentBlockData (Main Plugin)](#31-persistentblockdata-main-plugin)
    - 3.2 [NBTCustom (Interface)](#32-nbtcustom-interface)
    - 3.3 [NBTCustomBlock](#33-nbtcustomblock)
-   - 3.4 [PistonMovementListener](#34-pistonmovementlistener)
+   - 3.4 [BlockDataListener](#34-blockdatalistener)
 4. [Data Storage Model](#4-data-storage-model)
 5. [Piston Movement Logic](#5-piston-movement-logic)
 6. [Event Handling & Cleanup](#6-event-handling--cleanup)
@@ -39,10 +39,10 @@ Key features:
 ```
 PersistentBlockData (JavaPlugin)
 │
-├── registers ──► PistonMovementListener
+├── registers ──► BlockDataListener
 │                   └── listens to: BlockBreak, BlockPiston(Extend/Retract),
 │                                   BlockExplode, EntityExplode,
-│                                   BlockBurn, EntityChangeBlock
+│                                   BlockBurn, EntityChangeBlock, StructureGrowEvent
 │
 └── uses ──► NBTCustomBlock
                └── implements ──► NBTCustom (interface)
@@ -78,11 +78,11 @@ Chunk PersistentDataContainer
 
 The entry point of the plugin. Responsible for initialization and providing a static plugin instance to all other classes.
 
-| Member | Description |
-|---|---|
+| Member | Description                                                                                                                    |
+|---|--------------------------------------------------------------------------------------------------------------------------------|
 | `instance` | Static singleton reference to the active plugin instance. Read-only from outside the class. Set automatically on `onEnable()`. |
-| `onEnable()` | Registers the `PistonMovementListener` and logs activation. |
-| `onDisable()` | Logs deactivation. |
+| `onEnable()` | Registers the `BlockDataListener` and logs activation.                                                                         |
+| `onDisable()` | Logs deactivation.                                                                                                             |
 
 ---
 
@@ -163,9 +163,9 @@ blocks → "128_64_-300" → { custom → { ... } }
 
 ---
 
-### 3.4 `PistonMovementListener`
+### 3.4 `BlockDataListener`
 
-**File:** `PistonMovementListener.kt`  
+**File:** `BlockDataListener.kt`  
 **Package:** `gg.kpjm.persistentBlockData.listener`  
 **Implements:** `Listener`
 
@@ -173,15 +173,17 @@ Listens to all relevant block lifecycle events and ensures that custom NBT data 
 
 #### Registered Events
 
-| Event | Priority | Purpose |
-|---|---|---|
-| `BlockBreakEvent` | MONITOR | Deletes NBT when a block is broken by a player. |
-| `EntityChangeBlockEvent` | MONITOR | Deletes NBT when an entity changes the block type (e.g., frosting water). |
-| `BlockExplodeEvent` | MONITOR | Deletes NBT for all blocks destroyed in a block explosion. |
-| `EntityExplodeEvent` | MONITOR | Deletes NBT for all blocks destroyed in an entity explosion. |
-| `BlockBurnEvent` | MONITOR | Deletes NBT when a block burns (e.g., fire spread). |
-| `BlockPistonExtendEvent` | HIGHEST | Handles NBT transfer for extending pistons. |
-| `BlockPistonRetractEvent` | HIGHEST | Handles NBT transfer for retracting pistons. |
+| Event                     | Priority | Purpose                                                                   |
+|---------------------------|----------|---------------------------------------------------------------------------|
+| `BlockBreakEvent`         | MONITOR  | Deletes NBT when a block is broken by a player.                           |
+| `EntityChangeBlockEvent`  | MONITOR  | Deletes NBT when an entity changes the block type (e.g., frosting water). |
+| `BlockExplodeEvent`       | MONITOR  | Deletes NBT for all blocks destroyed in a block explosion.                |
+| `EntityExplodeEvent`      | MONITOR  | Deletes NBT for all blocks destroyed in an entity explosion.              |
+| `BlockBurnEvent`          | MONITOR  | Deletes NBT when a block burns (e.g., fire spread).                       |
+| `BlockPistonExtendEvent`  | HIGHEST  | Handles NBT transfer for extending pistons.                               |
+| `BlockPistonRetractEvent` | HIGHEST  | Handles NBT transfer for retracting pistons.                              |
+| `StructureGrowEvent`      | MONITOR  | Handles NBT transfer for Trees Growing.                                   |
+
 
 > All cleanup events use `MONITOR` priority with `ignoreCancelled = true`, meaning they only act after the event has been confirmed as not cancelled by other plugins.  
 > Piston events use `HIGHEST` priority to capture block state as early as possible, before other plugins can interfere.
@@ -278,7 +280,6 @@ All block-destruction events are handled uniformly: any custom NBT associated wi
 ### Reading Custom Data from a Block
 
 ```kotlin
-import gg.kpjm.persistentBlockData.nbt.NBTCustomBlock
 
 fun readData(block: Block) {
     // Fast pre-check — avoids constructing NBTCustomBlock unnecessarily
