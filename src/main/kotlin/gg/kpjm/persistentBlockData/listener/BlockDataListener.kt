@@ -3,6 +3,7 @@ package gg.kpjm.persistentBlockData.listener
 import gg.kpjm.persistentBlockData.PersistentBlockData
 import gg.kpjm.persistentBlockData.nbt.NBTCustomBlock
 import org.bukkit.Bukkit
+import org.bukkit.TreeType
 import org.bukkit.block.Block
 import org.bukkit.block.PistonMoveReaction
 import org.bukkit.event.EventHandler
@@ -11,11 +12,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.*
 import org.bukkit.event.entity.EntityChangeBlockEvent
 import org.bukkit.event.entity.EntityExplodeEvent
-import org.bukkit.plugin.Plugin
+import org.bukkit.event.world.StructureGrowEvent
 import java.util.*
 
 
-class PistonMovementListener(): Listener {
+class BlockDataListener(): Listener {
 
     private fun getData(block: Block): NBTCustomBlock {
         return NBTCustomBlock(block)
@@ -66,6 +67,13 @@ class PistonMovementListener(): Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onPiston(event: BlockPistonRetractEvent) {
         onPiston(event.blocks, event)
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onStructureGrow(event: StructureGrowEvent) {
+        for (block in event.blocks) {
+            getData(event.location.block).copyTo(block.block)
+        }
     }
 
     private fun onPiston(blocks: MutableList<Block?>, bukkitEvent: BlockPistonEvent) {
